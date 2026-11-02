@@ -18,7 +18,7 @@ class CPUGauge(QWidget):
     def __init__(self,parent=None):
         super().__init__(parent)
         self.data={}
-        self.setMinimumSize(128,100)
+        self.setMinimumSize(50,10)
         self.setToolTip("Cliquer pour les détails du processeur")
     def set_sample(self, sample):
         self.data=sample.get("cpu",{})
@@ -31,9 +31,16 @@ class CPUGauge(QWidget):
         p.setRenderHint(QPainter.Antialiasing)
         w,h=self.width(),self.height()
         scale=min(w,h)
-        rect=QRectF((w-scale)/2+11,(h-scale)/2+11,scale-22,scale-22)
+        rect=QRectF((w-scale)/2+6,(h-scale)/2+6,max(1,scale-12),max(1,scale-12))
         usage=self.data.get("usage")
         level=max(0,min(1,usage/100)) if isinstance(usage,(int,float)) else 0
+        if h < 25:
+            f=self.data.get('frequency_mhz')
+            p.setPen(QColor('#DDFBFF'))
+            p.setFont(QFont('Rajdhani',max(8,int(h*.65)),QFont.Bold))
+            p.drawText(self.rect(),Qt.AlignCenter,f'{f/1000:.2f} GHz' if isinstance(f,(int,float)) else '-- GHz')
+            p.end()
+            return
         for i in range(32):
             ratio=i/31
             color=gradient(ratio) if ratio<=level else QColor(37,67,82,145)

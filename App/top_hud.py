@@ -49,7 +49,7 @@ class TopHUD(QWidget):
         self.arrow.setToolTip("Déployer" if self.folded else "Rétracter")
         self.arrow.setStyleSheet("QPushButton{background:transparent;border:1px solid #9A324C;"
                                  "color:#FF365F;font-size:18px;padding:0;}")
-        self.cpu_gauge.setVisible(not self.folded and self.config.get('plugins', {}).get('cpu-plugin', {}).get('enabled', True))
+        self.cpu_gauge.setVisible(self.config.get('plugins', {}).get('cpu-plugin', {}).get('enabled', True))
         self.reserve(self.height_for_state() if self.isVisible() else 0)
         self.update()
     def reserve(self, height):

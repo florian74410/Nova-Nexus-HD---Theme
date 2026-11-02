@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import math
 import sys
+import time
 from PySide6.QtCore import Qt, QTimer, QPointF
 from PySide6.QtGui import QColor, QPainter, QPen, QPolygonF
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
@@ -13,57 +14,67 @@ from .settings_store import DEFAULT, validate
 from .plugin_registry import discover
 from .update_catalog import versions
 from .top_hud import TopHUD
+from .pcb_render import paint_tracks
 
 BASE_SECTIONS = ["Générale", "Thème & Couleurs", "Mise à jour", "À propos"]
 
 class Circuits(QWidget):
+    """Static PCB geometry with time-based fast cyan current."""
     def __init__(self, config, parent=None):
         super().__init__(parent)
         self.config = config
-        self.step = 0
+        self.started = time.monotonic()
+        self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.clock = QTimer(self)
+        self.clock.setInterval(25)
         self.clock.timeout.connect(self.advance)
-        self.clock.start(110)  # eco mode: only redraw when configured
 
     def advance(self):
-        if self.config["general"]["animations"] and self.config["theme"]["pcb_effects"]:
-            self.step = (self.step + 1) % 600
+        if self.isVisible() and self.config["general"]["animations"] and self.config["theme"]["pcb_effects"]:
             self.update()
+
+    def refresh_motion(self):
+        active = self.isVisible() and self.config["general"]["animations"] and self.config["theme"]["pcb_effects"]
+        if active and not self.clock.isActive():
+            self.clock.start()
+        elif not active:
+            self.clock.stop()
+        self.update()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.refresh_motion()
+
+    def hideEvent(self, event):
+        self.clock.stop()
+        super().hideEvent(event)
 
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
-        w, h = self.width(), self.height()
-        if w < 70 or h < 70:
+        w,h = self.width(),self.height()
+        if w < 100 or h < 100:
+            painter.end()
             return
         theme = self.config["theme"]
         bg = QColor(theme["background"])
-        bg.setAlphaF(theme["opacity"] / 100)
-        outline = QColor(theme["primary"])
-        outline.setAlpha(210)
-        polygon = QPolygonF([QPointF(18, 0), QPointF(w-18, 0), QPointF(w, 18),
-                    QPointF(w, h-18), QPointF(w-18, h), QPointF(18, h),
-                    QPointF(0, h-18), QPointF(0, 18)])
-        painter.setPen(QPen(outline, 1.6))
+        bg.setAlphaF(theme["opacity"]/100)
+        bevel = 22
+        poly = QPolygonF([QPointF(1,bevel),QPointF(bevel,1),
+            QPointF(w-bevel-1,1),QPointF(w-2,bevel),
+            QPointF(w-2,h-bevel),QPointF(w-bevel-1,h-2),
+            QPointF(bevel,h-2),QPointF(1,h-bevel)])
         painter.setBrush(bg)
-        painter.drawPolygon(polygon)
-        trace = QColor(theme["primary"])
-        trace.setAlpha(65)
-        dot = QColor(theme["secondary"])
-        for index, y in enumerate(range(66, max(67, h-30), 72)):
-            end = min(w-18, 92 + (index * 41) % 245)
-            path = [QPointF(5, y), QPointF(21, y), QPointF(39, y+18),
-                    QPointF(end-18, y+18), QPointF(end, y)]
-            painter.setPen(QPen(trace, 1.25))
-            for start, finish in zip(path, path[1:]):
-                painter.drawLine(start, finish)
-            painter.setPen(QPen(dot, 1))
-            painter.setBrush(dot)
-            painter.drawEllipse(path[-1], 2.4, 2.4)
-            if self.config["general"]["animations"] and theme["pcb_effects"]:
-                j = (self.step // 9 + index) % (len(path)-1)
-                painter.setPen(QPen(QColor("#E5FDFF"), 2))
-                painter.drawLine(path[j], path[j+1])
+        painter.setPen(QPen(QColor("#146E9F"),5))
+        painter.drawPolygon(poly)
+        painter.setPen(QPen(QColor("#D3F7FF"),1.2))
+        painter.drawPolygon(poly)
+        painter.setPen(QPen(QColor("#00EAFF"),1.6))
+        painter.drawLine(bevel,9,w-bevel,9)
+        painter.drawLine(bevel,h-9,w-bevel,h-9)
+        if theme["pcb_effects"]:
+            paint_tracks(painter,w,h,time.monotonic()-self.started,
+                theme,animated=self.config["general"]["animations"])
         painter.end()
 
 class Settings(QWidget):
@@ -164,7 +175,7 @@ class Settings(QWidget):
             button.setChecked(i == index)
 
     def persist(self):
-        self.circuit.update()
+        self.circuit.refresh_motion()
         self.apply_theme()
         if hasattr(self, 'hud'):
             self.sync_hud()
@@ -304,7 +315,7 @@ class Settings(QWidget):
     def apply_theme(self):
         t = self.config["theme"]
         primary, secondary, bg = t["primary"], t["secondary"], t["background"]
-        self.circuit.update()
+        self.circuit.refresh_motion()
         self.setObjectName("novaSettings")
         self.setStyleSheet(f"""
         QWidget#novaSettings {{background:#061224; color:#DFEDFF;}}

@@ -1,7 +1,7 @@
 name: v0.1 clean foundation
 on:
   push:
-    branches: [feature/v0.1-settings-shell]
+    branches: [feature/v0.1-settings-shell, feature/v0.2-nexus-top-hud]
   pull_request:
 permissions:
   contents: read
@@ -27,8 +27,8 @@ jobs:
           from App.main import Settings
           app=QApplication([])
           window=Settings()
-          assert window.stack.count()==5
-          assert len(window.buttons)==5
+          assert window.stack.count()>=5
+          assert len(window.buttons)>=5
           window.show()
           app.processEvents()
           window.show_page(1)

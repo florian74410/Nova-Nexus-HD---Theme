@@ -1,0 +1,29 @@
+{
+  "id": "nexus-top-hud",
+  "name": "NEXUS TOP HUD",
+  "version": "0.1.0",
+  "settings": [
+    {
+      "key": "enabled",
+      "label": "Activer la barre",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "key": "expanded_height",
+      "label": "Hauteur déployée (20–50 px)",
+      "type": "integer",
+      "min": 20,
+      "max": 50,
+      "default": 30
+    },
+    {
+      "key": "collapsed_height",
+      "label": "Hauteur repliée (10–20 px)",
+      "type": "integer",
+      "min": 10,
+      "max": 20,
+      "default": 12
+    }
+  ]
+}

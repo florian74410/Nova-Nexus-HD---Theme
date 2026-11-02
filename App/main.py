@@ -12,6 +12,7 @@ from . import __version__
 from .settings_store import DEFAULT, validate
 from .plugin_registry import discover
 from .update_catalog import versions
+from .top_hud import TopHUD
 
 BASE_SECTIONS = ["Générale", "Thème Couleurs", "Plugins", "Mise à jour", "À Propos"]
 
@@ -121,6 +122,8 @@ class Settings(QWidget):
         body.addWidget(self.stack, 1)
         layout.addLayout(body, 1)
         self.apply_theme()
+        self.hud = TopHUD(self.config)
+        self.sync_hud()
         self.show_page(0)
 
     def resizeEvent(self, event):
@@ -166,6 +169,20 @@ class Settings(QWidget):
     def persist(self):
         self.circuit.update()
         self.apply_theme()
+        if hasattr(self, 'hud'):
+            self.sync_hud()
+
+    def sync_hud(self):
+        if self.config['plugins'].get('nexus-top-hud', {}).get('enabled', True):
+            self.hud.refresh()
+            self.hud.show()
+        else:
+            self.hud.hide()
+
+    def closeEvent(self, event):
+        if hasattr(self, 'hud'):
+            self.hud.close()
+        super().closeEvent(event)
 
     def general_page(self, lay):
         lay.addWidget(self.label("Comportement du noyau de configuration. Aucun panneau système n'est modifié."))

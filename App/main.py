@@ -13,6 +13,7 @@ from .settings_store import DEFAULT, validate
 from .plugin_registry import discover
 from .update_catalog import versions
 from .top_hud import TopHUD
+from .telemetry import Telemetry
 
 BASE_SECTIONS = ["Générale", "Thème Couleurs", "Plugins", "Mise à jour", "À Propos"]
 
@@ -123,6 +124,9 @@ class Settings(QWidget):
         layout.addLayout(body, 1)
         self.apply_theme()
         self.hud = TopHUD(self.config)
+        self.telemetry = Telemetry(parent=self)
+        self.telemetry.sampled.connect(self.hud.set_sample)
+        self.hud.cpu_gauge.details_requested.connect(self.cpu_details)
         self.sync_hud()
         self.show_page(0)
 
@@ -172,14 +176,38 @@ class Settings(QWidget):
         if hasattr(self, 'hud'):
             self.sync_hud()
 
+    def cpu_details(self):
+        data=self.hud.cpu_gauge.data
+        def fmt(value, unit=''):
+            return f'{value}{unit}' if value is not None else 'Indisponible'
+        lines=[f"Modèle : {data.get('model') or 'Indisponible'}",
+               f"Utilisation : {fmt(data.get('usage'), ' %')}",
+               f"Fréquence courante : {fmt(data.get('frequency_mhz'), ' MHz')}",
+               f"Minimum : {fmt(data.get('min_mhz'), ' MHz')}",
+               f"Maximum : {fmt(data.get('max_mhz'), ' MHz')}",
+               f"Cœurs physiques : {fmt(data.get('physical'))}",
+               f"Threads : {fmt(data.get('logical'))}"]
+        for name, readings in data.get('temperatures', {}).items():
+            for reading in readings:
+                lines.append(f"{name} {reading['label']}: {fmt(reading['c'], ' °C')}")
+        QMessageBox.information(self, 'CPU Plugin — Détails', '\\n'.join(lines))
+
     def sync_hud(self):
         if self.config['plugins'].get('nexus-top-hud', {}).get('enabled', True):
             self.hud.refresh()
             self.hud.show()
         else:
             self.hud.hide()
+        cpu=self.config['plugins'].get('cpu-plugin', {})
+        self.telemetry.set_interval(cpu.get('refresh_ms', 2000))
+        if cpu.get('enabled', True) and self.hud.isVisible():
+            self.telemetry.start()
+        else:
+            self.telemetry.stop()
 
     def closeEvent(self, event):
+        if hasattr(self, 'telemetry'):
+            self.telemetry.stop()
         if hasattr(self, 'hud'):
             self.hud.close()
         super().closeEvent(event)

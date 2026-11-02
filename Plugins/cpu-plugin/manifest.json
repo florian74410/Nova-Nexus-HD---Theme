@@ -1,0 +1,22 @@
+{
+  "id": "cpu-plugin",
+  "name": "CPU Plugin",
+  "version": "0.1.0",
+  "description": "Processeur — utilisation, fréquence, capteurs et Holo",
+  "settings": [
+    {
+      "key": "enabled",
+      "label": "Activer CPU Plugin",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "key": "refresh_ms",
+      "label": "Actualisation (ms)",
+      "type": "integer",
+      "min": 500,
+      "max": 60000,
+      "default": 2000
+    }
+  ]
+}

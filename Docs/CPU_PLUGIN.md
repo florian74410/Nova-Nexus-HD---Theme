@@ -1,0 +1,3 @@
+# CPU Plugin v0.1
+
+Collecteur unique `App/telemetry.py` basé sur psutil. Chaque futur plugin s'abonnera au même signal ; aucune boucle supplémentaire. Fréquence configurable 500–60000 ms (2000 par défaut). Le compteur sans aiguille utilise 32 segments, dégradé vert/jaune/orange/rouge, fréquence centrale en GHz, Police Rajdhani pour chiffres, Exo 2 pour petits textes avec repli système. Les capteurs indisponibles valent `None`, jamais zéro fictif. Niveau principal: GHz; secondaire: charge %, température si capteur identifié; détails: cœurs, fréquences, capteurs. Ne pas exécuter de code depuis `Old/`.

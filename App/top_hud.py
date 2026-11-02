@@ -3,6 +3,7 @@ import sys
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QPen, QGuiApplication
 from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout
+from .cpu_gauge import CPUGauge
 
 def clamp(value, folded=False):
     low, high, default = (10, 20, 12) if folded else (20, 50, 30)
@@ -22,6 +23,9 @@ class TopHUD(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(4,0,6,0)
+        self.cpu_gauge = CPUGauge(self)
+        self.cpu_gauge.setFixedWidth(132)
+        layout.addWidget(self.cpu_gauge)
         layout.addStretch()
         self.arrow = QPushButton("⌃")
         self.arrow.setFixedWidth(26)
@@ -45,6 +49,7 @@ class TopHUD(QWidget):
         self.arrow.setToolTip("Déployer" if self.folded else "Rétracter")
         self.arrow.setStyleSheet("QPushButton{background:transparent;border:1px solid #9A324C;"
                                  "color:#FF365F;font-size:18px;padding:0;}")
+        self.cpu_gauge.setVisible(self.config.get('plugins', {}).get('cpu-plugin', {}).get('enabled', True))
         self.reserve(self.height_for_state() if self.isVisible() else 0)
         self.update()
     def reserve(self, height):
@@ -75,6 +80,9 @@ class TopHUD(QWidget):
     def closeEvent(self,event):
         self.reserve(0)
         super().closeEvent(event)
+    def set_sample(self,sample):
+        self.cpu_gauge.set_sample(sample)
+
     def toggle(self):
         self.folded=not self.folded
         self.refresh()

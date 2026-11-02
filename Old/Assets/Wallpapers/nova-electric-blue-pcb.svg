@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#07111d"/><stop offset="1" stop-color="#02060d"/></linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#14344b" stroke-opacity=".24"/></pattern>
+    <filter id="glow"><feGaussianBlur stdDeviation="5"/></filter>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+  <g fill="none" stroke="#00cbf3" stroke-width="2" opacity=".28">
+    <path d="M0 140H170L210 180H390L440 230H600M0 220H95L130 255H300L345 300H520"/>
+    <path d="M0 810H180L210 780H360L405 735H620M0 920H230L275 875H440L475 840H700"/>
+    <path d="M1920 160H1710L1660 210H1500L1450 260H1300M1920 300H1800L1760 340H1630L1590 380H1420"/>
+    <path d="M1920 840H1700L1660 800H1520L1480 760H1300M1920 930H1770L1720 880H1600L1560 840H1440"/>
+    <path d="M310 0V95L370 155H520M1670 0V110L1600 180H1440M310 1080V980L370 920H540M1670 1080V970L1610 910H1430"/>
+  </g>
+  <g fill="#00cbf3" opacity=".5">
+    <circle cx="600" cy="230" r="5"/><circle cx="520" cy="300" r="5"/>
+    <circle cx="620" cy="735" r="5"/><circle cx="700" cy="840" r="5"/>
+    <circle cx="1300" cy="260" r="5"/><circle cx="1420" cy="380" r="5"/>
+    <circle cx="1300" cy="760" r="5"/><circle cx="1440" cy="840" r="5"/>
+  </g>
+  <g fill="none" stroke="#277fea" opacity=".35">
+    <path d="M760 60H1160L1250 150V290M760 1020H1160L1250 930V790"/>
+    <rect x="735" y="355" width="450" height="370" rx="0" stroke-width="1"/>
+    <path d="M735 390l35-35m380 0 35 35M735 690l35 35m380 0 35-35"/>
+  </g>
+  <text x="960" y="519" text-anchor="middle" fill="#1d617f" font-size="50" letter-spacing="18" font-family="sans-serif">NOVA NEXUS</text>
+  <text x="960" y="562" text-anchor="middle" fill="#15607c" font-size="16" letter-spacing="12" font-family="sans-serif">ELECTRIC BLUE PCB</text>
+  <text x="960" y="597" text-anchor="middle" fill="#18394b" font-size="13" letter-spacing="5" font-family="monospace">DESKTOP ENVIRONMENT / HD</text>
+</svg>

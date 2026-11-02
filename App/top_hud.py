@@ -1,7 +1,7 @@
 """Event-driven top HUD for Linux X11; no polling or background timers."""
 import sys
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QColor, QPainter, QPen, QGuiApplication
+from PySide6.QtCore import Qt, Signal, QPointF
+from PySide6.QtGui import QColor, QPainter, QPen, QGuiApplication, QPainterPath, QPolygonF
 from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout
 
 def clamp(value, folded=False):
@@ -80,17 +80,40 @@ class TopHUD(QWidget):
         self.refresh()
         self.changed.emit(self.folded)
     def paintEvent(self,event):
+        # NovaBar 1.0 styling: faceted glass, electric-blue perimeter,
+        # PCB traces and red navigation; intentionally fully static.
         p=QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
         t=self.config["theme"]
+        w,h=self.width(),self.height()
+        if w<80 or h<8:
+            p.end()
+            return
         bg=QColor(t["background"])
         bg.setAlphaF(t["opacity"]/100)
-        p.fillRect(self.rect(),bg)
-        p.setPen(QPen(QColor(t["primary"]),1.5))
-        p.drawLine(0,self.height()-1,self.width(),self.height()-1)
-        for x in range(22,min(self.width()-40,390),110):
-            p.drawLine(x,2,x+25,2)
-            p.drawLine(x+25,2,x+33,min(self.height()-2,9))
-            p.setBrush(QColor(t["secondary"]))
-            p.drawEllipse(x+31,min(self.height()-5,7),3,3)
+        shape=QPainterPath()
+        bevel=min(12,max(3,h//4))
+        shape.addPolygon(QPolygonF([
+            QPointF(0,bevel),QPointF(bevel,0),QPointF(w-bevel,0),
+            QPointF(w,bevel),QPointF(w,h-bevel),QPointF(w-bevel,h),
+            QPointF(bevel,h),QPointF(0,h-bevel)]))
+        p.fillPath(shape,bg)
+        blue=QColor("#31DCFF")
+        blue.setAlpha(205)
+        p.setPen(QPen(blue,1.3))
+        p.drawPath(shape)
+        p.setPen(QPen(QColor("#17639B"),1))
+        p.drawLine(bevel+2,h-4,w-bevel-2,h-4)
+        # Short routed PCB tracks echo the NovaBar 1.0 signature.
+        if not self.folded:
+            cyan=QColor(t["primary"])
+            cyan.setAlpha(135)
+            p.setPen(QPen(cyan,1.2))
+            for x in range(35,max(36,w-160),145):
+                end=min(x+74,w-65)
+                p.drawLine(x,3,x+18,3)
+                p.drawLine(x+18,3,x+25,min(h-5,10))
+                p.drawLine(x+25,min(h-5,10),end,min(h-5,10))
+                p.setBrush(QColor(t["secondary"]))
+                p.drawEllipse(QPointF(end,min(h-5,10)),2.0,2.0)
         p.end()

@@ -13,6 +13,7 @@ from .settings_store import DEFAULT, validate
 from .plugin_registry import discover
 from .update_catalog import versions
 from .top_hud import TopHUD
+from .telemetry import Telemetry
 
 BASE_SECTIONS = ["Générale", "Thème Couleurs", "Plugins", "Mise à jour", "À Propos"]
 
@@ -123,6 +124,8 @@ class Settings(QWidget):
         layout.addLayout(body, 1)
         self.apply_theme()
         self.hud = TopHUD(self.config)
+        self.telemetry = Telemetry(parent=self)
+        self.telemetry.sampled.connect(self.hud.set_sample)
         self.sync_hud()
         self.show_page(0)
 
@@ -178,8 +181,16 @@ class Settings(QWidget):
             self.hud.show()
         else:
             self.hud.hide()
+        cpu=self.config['plugins'].get('cpu-plugin', {})
+        self.telemetry.set_interval(cpu.get('refresh_ms', 2000))
+        if cpu.get('enabled', True) and self.hud.isVisible():
+            self.telemetry.start()
+        else:
+            self.telemetry.stop()
 
     def closeEvent(self, event):
+        if hasattr(self, 'telemetry'):
+            self.telemetry.stop()
         if hasattr(self, 'hud'):
             self.hud.close()
         super().closeEvent(event)

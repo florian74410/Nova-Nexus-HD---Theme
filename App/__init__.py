@@ -1,2 +1,2 @@
-"""NOVA NEXUS HD v0.1 clean application."""
-__version__ = "0.1.0"
+"""NOVA NEXUS HD fresh base."""
+__version__ = "0.2.0"

@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
     QPushButton, QStackedWidget, QCheckBox, QColorDialog, QSlider, QScrollArea,
     QComboBox, QMessageBox, QSpinBox, QLineEdit, QFrame)
 from . import __version__
-from .settings_store import DEFAULT, load, save
+from .settings_store import DEFAULT, validate
 from .plugin_registry import discover
 from .update_catalog import versions
 
@@ -68,7 +68,7 @@ class Circuits(QWidget):
 class Settings(QWidget):
     def __init__(self):
         super().__init__()
-        self.config = load()
+        self.config = validate({})
         self.setWindowTitle("NOVA NEXUS HD — Paramètres")
         self.resize(1020, 665)
         self.setMinimumSize(820, 560)
@@ -164,7 +164,6 @@ class Settings(QWidget):
             button.setChecked(i == index)
 
     def persist(self):
-        save(self.config)
         self.circuit.update()
         self.apply_theme()
 

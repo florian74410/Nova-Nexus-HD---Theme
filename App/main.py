@@ -102,6 +102,7 @@ class Settings(QWidget):
         self.nav.setContentsMargins(0, 16, 0, 0)
         self.nav.setSpacing(8)
         self.buttons = []
+        self.plugin_rows = discover()
         self.stack = QStackedWidget()
         self.make_page("GÉNÉRALE", self.general_page)
         self.make_page("THÈME & COULEURS", self.theme_page)
@@ -110,7 +111,6 @@ class Settings(QWidget):
         self.make_page("À PROPOS", self.about_page)
         for title in BASE_SECTIONS:
             self.add_navigation(title)
-        self.plugin_rows = discover()
         for plugin in self.plugin_rows:
             self.make_page(plugin["name"].upper(), lambda lay, p=plugin: self.plugin_page(lay, p))
             self.add_navigation("↳ " + plugin["name"])

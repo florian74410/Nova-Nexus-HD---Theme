@@ -12,6 +12,11 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(c["theme"]["primary"], "#00C8FF")
         self.assertEqual(c["theme"]["opacity"], 94)
         self.assertTrue(c["general"]["animations"])
+    def test_session_defaults_even_when_saved_config_exists(self):
+        # The UI starts with defaults; reading a prior settings file is opt-in only.
+        from App.settings_store import DEFAULT
+        self.assertEqual(validate({}), DEFAULT)
+
     def test_persistent_theme(self):
         with tempfile.TemporaryDirectory() as td:
             path = Path(td)/"settings.json"

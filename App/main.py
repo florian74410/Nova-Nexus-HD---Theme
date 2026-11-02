@@ -14,7 +14,7 @@ from .plugin_registry import discover
 from .update_catalog import versions
 from .top_hud import TopHUD
 
-BASE_SECTIONS = ["Générale", "Thème Couleurs", "Plugins", "Mise à jour", "À Propos"]
+BASE_SECTIONS = ["Générale", "Thème & Couleurs", "Mise à jour", "À propos"]
 
 class Circuits(QWidget):
     def __init__(self, config, parent=None):
@@ -23,7 +23,7 @@ class Circuits(QWidget):
         self.step = 0
         self.clock = QTimer(self)
         self.clock.timeout.connect(self.advance)
-        self.clock.start(65)
+        self.clock.start(110)  # eco mode: only redraw when configured
 
     def advance(self):
         if self.config["general"]["animations"] and self.config["theme"]["pcb_effects"]:
@@ -71,8 +71,8 @@ class Settings(QWidget):
         super().__init__()
         self.config = validate({})
         self.setWindowTitle("NOVA NEXUS HD — Paramètres")
-        self.resize(1020, 665)
-        self.setMinimumSize(820, 560)
+        self.resize(1060, 700)
+        self.setMinimumSize(860, 590)
         self.circuit = Circuits(self.config, self)
         self.circuit.lower()
         layout = QVBoxLayout(self)
@@ -97,23 +97,20 @@ class Settings(QWidget):
         body = QHBoxLayout()
         body.setSpacing(20)
         sidebar = QWidget()
-        sidebar.setFixedWidth(214)
+        sidebar.setFixedWidth(238)
+        sidebar.setObjectName("novaSidePanel")
         self.nav = QVBoxLayout(sidebar)
         self.nav.setContentsMargins(0, 16, 0, 0)
         self.nav.setSpacing(8)
         self.buttons = []
-        self.plugin_rows = discover()
+        self.plugin_rows = []  # v0.1: preserve registry backend but no plugin UI
         self.stack = QStackedWidget()
         self.make_page("GÉNÉRALE", self.general_page)
         self.make_page("THÈME & COULEURS", self.theme_page)
-        self.make_page("PLUGINS", self.plugins_page)
         self.make_page("MISE À JOUR", self.updates_page)
         self.make_page("À PROPOS", self.about_page)
         for title in BASE_SECTIONS:
             self.add_navigation(title)
-        for plugin in self.plugin_rows:
-            self.make_page(plugin["name"].upper(), lambda lay, p=plugin: self.plugin_page(lay, p))
-            self.add_navigation("↳ " + plugin["name"])
         self.nav.addStretch()
         dim = QLabel("◉  LOCAL / SECURE")
         dim.setObjectName("dim")
@@ -308,25 +305,39 @@ class Settings(QWidget):
         t = self.config["theme"]
         primary, secondary, bg = t["primary"], t["secondary"], t["background"]
         self.circuit.update()
+        self.setObjectName("novaSettings")
         self.setStyleSheet(f"""
+        QWidget#novaSettings {{background:#061224; color:#DFEDFF;}}
         QWidget {{color:#DCEBFF; font-family:'DejaVu Sans'; font-size:13px;}}
+        QWidget#novaSidePanel {{background:rgba(7,24,44,235);border:1px solid #17639B;border-radius:8px;}}
         QFrame#line {{background:{primary};max-height:1px;border:0;}}
-        QLabel#brand {{font-size:22px;font-weight:800;color:{primary};letter-spacing:2px;}}
-        QLabel#dim {{color:#829BB4;font-size:11px;}}
-        QLabel#heading {{color:{primary};font-size:20px;font-weight:700;letter-spacing:1px;}}
-        QLabel#description {{color:#B4C7D8;line-height:140%;}}
-        QPushButton {{text-align:left; padding:10px 15px; background:#122338;
-            border:1px solid #29465F;border-radius:4px;}}
-        QPushButton:hover {{border:1px solid {primary};background:#173650;}}
-        QPushButton:checked {{color:{primary};border:1px solid {primary};
-            border-left:4px solid {secondary};background:#17344B;}}
-        QPushButton#close {{font-size:20px;color:{secondary};max-width:40px;text-align:center;}}
+        QLabel#brand {{font-size:24px;font-weight:800;color:#31DCFF;letter-spacing:2px;}}
+        QLabel#dim {{color:#87B4D4;font-size:11px;}}
+        QLabel#heading {{color:#31DCFF;font-size:22px;font-weight:700;letter-spacing:1px;}}
+        QLabel#description {{color:#C4D9F7;line-height:140%;}}
+        QPushButton {{text-align:left;padding:11px 15px;color:#DCEBFF;background:#0B2440;
+            border:1px solid #17639B;border-radius:6px;}}
+        QPushButton:hover {{border:1px solid #00DDFF;background:#123960;}}
+        QPushButton:pressed {{background:#104377;border-color:#31DCFF;}}
+        QPushButton:checked {{color:#31DCFF;border:1px solid #21CEFF;
+            border-left:4px solid {secondary};background:#104377;}}
+        QPushButton#close {{font-size:20px;color:#FF465F;border:1px solid #AB384B;
+            background:#24121F;min-width:42px;max-width:42px;text-align:center;}}
+        QPushButton#close:hover {{background:#5B1E2C;border-color:#FF5C72;}}
         QScrollArea, QScrollArea > QWidget > QWidget {{background:transparent;border:none;}}
-        QCheckBox {{spacing:12px;}}
-        QSlider::groove:horizontal {{height:5px;background:#28445A;}}
-        QSlider::handle:horizontal {{background:{primary};width:15px;margin:-5px 0;}}
-        QComboBox, QSpinBox, QLineEdit {{background:#10263A;color:#E4F5FF;
-            border:1px solid {primary};padding:8px;}}
+        QScrollBar:vertical {{background:#071B32;width:10px;border:1px solid #17476C;}}
+        QScrollBar::handle:vertical {{background:#17639B;border:1px solid #21CEFF;
+            border-radius:3px;min-height:28px;}}
+        QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical {{height:0;}}
+        QCheckBox {{spacing:12px;color:#C4D9F7;}}
+        QCheckBox::indicator {{width:17px;height:17px;border:1px solid #17639B;background:#0B2440;}}
+        QCheckBox::indicator:checked {{background:#104377;border:2px solid #31DCFF;}}
+        QSlider::groove:horizontal {{height:4px;background:#17476C;}}
+        QSlider::handle:horizontal {{background:#14D8FF;width:16px;margin:-6px 0;border-radius:8px;}}
+        QComboBox,QSpinBox,QLineEdit {{background:#0B2440;color:#E4F2FF;
+            border:1px solid #17639B;border-radius:5px;padding:8px;}}
+        QComboBox:hover,QSpinBox:hover,QLineEdit:focus {{border-color:#31DCFF;}}
+        QToolTip {{color:#E4F2FF;background:#0B2440;border:1px solid #21CEFF;}}
         """)
         if hasattr(self, "opacity_label"):
             self.opacity_label.setText("Opacité du fond : " + str(t["opacity"]) + " %")

@@ -124,15 +124,4 @@ class TopHUD(QWidget):
         # Short routed PCB tracks echo the NovaBar 1.0 signature.
         if not self.folded and t['pcb_effects']:
             paint_tracks(p,w,h,time.monotonic()-self.started,t,edge=True,animated=self.config['general']['animations'])
-        if False:
-            cyan=QColor(t["primary"])
-            cyan.setAlpha(135)
-            p.setPen(QPen(cyan,1.2))
-            for x in range(35,max(36,w-160),145):
-                end=min(x+74,w-65)
-                p.drawLine(x,3,x+18,3)
-                p.drawLine(x+18,3,x+25,min(h-5,10))
-                p.drawLine(x+25,min(h-5,10),end,min(h-5,10))
-                p.setBrush(QColor(t["secondary"]))
-                p.drawEllipse(QPointF(end,min(h-5,10)),2.0,2.0)
         p.end()
